@@ -1,0 +1,10 @@
+services:
+    api:
+        container_name: codigo-postal-mexico-dev
+        ports:
+            - "8180:8180"
+        environment:
+            - ASPNETCORE_ENVIRONMENT=dev
+            - DOTNET_USE_POLLING_FILE_WATCHER=1
+            - ASPNETCORE_URLS=http://+:8180
+            - APPDATA=/app/tmp

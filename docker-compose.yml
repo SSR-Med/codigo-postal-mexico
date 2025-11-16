@@ -1,0 +1,18 @@
+services:
+    api:
+        container_name: codigo-postal-mexico
+        build:
+            context: .
+            dockerfile: Dockerfile
+        volumes:
+            - ./logs:/app/logs
+        dns:
+            - 8.8.8.8
+            - 1.1.1.1
+        restart: always
+        networks:
+            - infra-network # Conecta este servicio a la red llamada "infra-network" donde esta enlazado el docker y el minio
+
+networks:
+    infra-network:
+        external: true # Usa una red externa preexistente llamada "infra-network" en lugar de crearla
