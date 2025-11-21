@@ -15,8 +15,14 @@ RUN dotnet restore
 # Copiar el resto de los archivos
 COPY . .
 
+# Instalar Playwright CLI tool globalmente
+RUN dotnet tool install --global Microsoft.Playwright.CLI
+
 # Construir la aplicación
 RUN dotnet publish Api/Api.csproj -c Release -o /out --no-restore
+
+# Instalar Playwright browsers en la etapa de build (sin dependencias del sistema, se instalan en runtime)
+RUN /root/.dotnet/tools/playwright install chromium
 
 # Etapa de ejecución
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
@@ -44,17 +50,8 @@ RUN apt-get update && apt-get install -y \
 
 COPY --from=build /out ./
 
-# Instalar PowerShell y Playwright browsers en runtime
-RUN apt-get update && \
-    apt-get install -y wget apt-transport-https software-properties-common && \
-    wget -q "https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb" && \
-    dpkg -i packages-microsoft-prod.deb && \
-    apt-get update && \
-    apt-get install -y powershell && \
-    rm packages-microsoft-prod.deb && \
-    pwsh -Command "Set-PSRepository -Name PSGallery -InstallationPolicy Trusted" && \
-    pwsh /app/playwright.ps1 install --with-deps chromium && \
-    rm -rf /var/lib/apt/lists/*
+# Copiar Playwright browsers instalados desde la etapa de build
+COPY --from=build /root/.cache/ms-playwright /root/.cache/ms-playwright
 
 ENV ASPNETCORE_ENVIRONMENT=dev
 ENV ASPNETCORE_URLS=http://+:8380
